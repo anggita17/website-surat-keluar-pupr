@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Edit Surat Keluar</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f2f5;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 30px 40px;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      text-align: center;
+      color: #2a4d8f;
+      margin-bottom: 30px;
+    }
+
+    a.back {
+      display: inline-block;
+      margin-bottom: 20px;
+      text-decoration: none;
+      color: #2a4d8f;
+      font-size: 14px;
+    }
+
+    form label {
+      display: block;
+      margin-top: 16px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    form input {
+      width: 100%;
+      padding: 10px 14px;
+      margin-top: 6px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    button {
+      display: block;
+      width: 100%;
+      margin-top: 30px;
+      padding: 12px;
+      background: #2a4d8f;
+      color: #fff;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: #1f3970;
+    }
+
+    @media screen and (max-width: 600px) {
+      .container {
+        padding: 25px 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <a href="surat-keluar.html" class="back">← Kembali ke Daftar Surat</a>
+    <h2>Edit Surat Keluar</h2>
+
+    <form id="formEditSurat">
+      <label for="noAgenda">No Agenda</label>
+      <input type="text" id="noAgenda" disabled />
+
+      <label for="alamatTujuan">Alamat Tujuan</label>
+      <input type="text" id="alamatTujuan" required />
+
+      <label for="perihal">Perihal</label>
+      <input type="text" id="perihal" required />
+
+      <label for="tanggal">Tanggal</label>
+      <input type="date" id="tanggal" required />
+
+      <label for="bidang">Bidang</label>
+      <input type="text" id="bidang" required />
+
+      <button type="submit">💾 Simpan Perubahan</button>
+    </form>
+  </div>
+
+  <script>
+    const noAgenda = sessionStorage.getItem("editNoAgenda");
+    if (!noAgenda) {
+      alert("Data tidak ditemukan.");
+      window.location.href = "surat-keluar.html";
+    }
+
+    const noAgendaInput = document.getElementById("noAgenda");
+    const alamatInput = document.getElementById("alamatTujuan");
+    const perihalInput = document.getElementById("perihal");
+    const tanggalInput = document.getElementById("tanggal");
+    const bidangInput = document.getElementById("bidang");
+
+    let suratList = JSON.parse(localStorage.getItem("suratData")) || [];
+    let surat = suratList.find(item => item.noAgenda === noAgenda);
+
+    if (surat) {
+      noAgendaInput.value = surat.noAgenda;
+      alamatInput.value = surat.alamatTujuan;
+      perihalInput.value = surat.perihal;
+      tanggalInput.value = surat.tanggal;
+      bidangInput.value = surat.bidang;
+    } else {
+      alert("Data surat tidak ditemukan.");
+      window.location.href = "surat-keluar.html";
+    }
+
+    document.getElementById("formEditSurat").addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const updatedData = {
+        noAgenda: surat.noAgenda,
+        alamatTujuan: alamatInput.value,
+        perihal: perihalInput.value,
+        tanggal: tanggalInput.value,
+        bidang: bidangInput.value,
+        locked: surat.locked || false
+      };
+
+      suratList = suratList.map(item => item.noAgenda === noAgenda ? updatedData : item);
+      localStorage.setItem("suratData", JSON.stringify(suratList));
+
+      alert("Data berhasil diperbarui!");
+      window.location.href = "surat-keluar.html";
+    });
+  </script>
+</body>
+</html>

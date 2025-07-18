@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tambah Surat Keluar</title>
+  <style>
+    body {
+      margin: 0; font-family: 'Segoe UI', sans-serif; background: #f4f6f8;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('images/begron.png') no-repeat center center;
+      background-size: contain;
+      opacity: 0.6; /* lebih solid */
+      z-index: -2;
+    }
+    header {
+      background-color: #0057a8; color: white;
+      padding: 20px; display: flex; justify-content: space-between; align-items: center;
+    }
+    header h2 { margin: 0; font-size: 22px; }
+    .logout-btn {
+      background-color: #e74c3c; color: white;
+      padding: 8px 14px; border: none; border-radius: 4px;
+      cursor: pointer;
+    }
+    main {
+      padding: 30px; max-width: 800px; margin: auto;
+    }
+    .card {
+      background: white; border-radius: 8px;
+      padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    label {
+      font-weight: bold; margin-top: 10px; display: block;
+    }
+    input, select, textarea {
+      width: 100%; padding: 10px;
+      border: 1px solid #ccc; border-radius: 5px;
+      margin-bottom: 15px; font-size: 14px;
+    }
+    button {
+      background: #3498db; color: white;
+      border: none; padding: 10px 16px;
+      border-radius: 4px; cursor: pointer; font-size: 15px;
+    }
+    .back-btn {
+      margin-top: 10px;
+      background-color: #777;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h2>Tambah Surat Keluar</h2>
+  <button class="logout-btn" onclick="logout()">Logout</button>
+</header>
+
+<main>
+  <div class="card">
+    <form id="suratForm">
+      <label>No Agenda</label>
+      <input type="text" id="noAgenda" required />
+
+      <label>Alamat Tujuan</label>
+      <textarea id="alamatTujuan" required></textarea>
+
+      <label>Perihal</label>
+      <input type="text" id="perihal" required />
+
+      <label>Tanggal</label>
+      <input type="date" id="tanggal" required />
+
+      <label>Bidang</label>
+      <select id="bidang" required>
+        <option value="">-- Pilih Bidang --</option>
+        <option value="Bina Marga">Bina Marga</option>
+        <option value="Cipta Karya">Cipta Karya</option>
+        <option value="Tata Ruang">Tata Ruang</option>
+      </select>
+
+      <button type="submit">Simpan Surat</button>
+    </form>
+
+    <button class="back-btn" onclick="window.location.href='dashboard.html'">← Kembali ke Dashboard</button>
+  </div>
+</main>
+
+<script>
+  const user = sessionStorage.getItem("loggedInUser");
+  const role = sessionStorage.getItem("loggedInRole");
+
+  if (!user || !role) {
+    window.location.href = "login.html";
+    alert("Silakan login terlebih dahulu.");
+  }
+
+  const form = document.getElementById("suratForm");
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    const data = {
+      noAgenda: document.getElementById("noAgenda").value,
+      alamatTujuan: document.getElementById("alamatTujuan").value,
+      perihal: document.getElementById("perihal").value,
+      tanggal: document.getElementById("tanggal").value,
+      bidang: document.getElementById("bidang").value,
+      locked: false
+    };
+
+    let suratList = JSON.parse(localStorage.getItem("suratData")) || [];
+    suratList.push(data);
+    localStorage.setItem("suratData", JSON.stringify(suratList));
+    alert("Surat berhasil ditambahkan!");
+    window.location.href = "dashboard.html"; // Kembali ke dashboard
+  });
+
+  function logout() {
+    sessionStorage.clear();
+    window.location.href = "index.html";
+  }
+</script>
+
+</body>
+</html>

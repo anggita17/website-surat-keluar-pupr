@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Arsip Surat</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      padding: 30px;
+      background-color: #f8f9fa;
+      color: #333;
+      position: relative;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: url('images/begron.png') no-repeat center center;
+      background-size: cover;
+      opacity: 0.15;
+      z-index: -1;
+    }
+
+    .logout {
+      position: absolute;
+      top: 30px;
+      right: 30px;
+    }
+
+    .logout button {
+      background-color: #e74c3c;
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .back-dashboard {
+      position: absolute;
+      top: 30px;
+      left: 30px;
+    }
+
+    .back-dashboard a {
+      background-color: #34495e;
+      color: white;
+      padding: 8px 14px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    h2 {
+      margin-bottom: 20px;
+      text-align: center;
+      color: #2c3e50;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    th, td {
+      padding: 12px 15px;
+      border-bottom: 1px solid #eee;
+      text-align: left;
+    }
+
+    th {
+      background-color: #3498db;
+      color: white;
+      font-weight: 600;
+    }
+
+    tr:hover {
+      background-color: #f1f1f1;
+    }
+
+    button {
+      background-color: #2ecc71;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #27ae60;
+    }
+
+    #printArea {
+      display: none;
+      padding: 20px;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    #printArea h3 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    #printArea p {
+      margin: 6px 0;
+    }
+
+    @media (max-width: 600px) {
+      table, thead, tbody, th, td, tr {
+        display: block;
+      }
+      th {
+        display: none;
+      }
+      td {
+        position: relative;
+        padding-left: 50%;
+        text-align: right;
+      }
+      td::before {
+        position: absolute;
+        top: 12px;
+        left: 15px;
+        width: 45%;
+        white-space: nowrap;
+        color: #999;
+        font-weight: bold;
+      }
+      td:nth-of-type(1)::before { content: "No Agenda"; }
+      td:nth-of-type(2)::before { content: "Alamat Tujuan"; }
+      td:nth-of-type(3)::before { content: "Perihal"; }
+      td:nth-of-type(4)::before { content: "Tanggal"; }
+      td:nth-of-type(5)::before { content: "Bidang"; }
+      td:nth-of-type(6)::before { content: "Aksi"; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Tombol Kembali ke Dashboard -->
+  <div class="back-dashboard">
+    <a href="dashboard.html">← Kembali ke Dashboard</a>
+  </div>
+
+  <!-- Tombol Logout -->
+  <div class="logout">
+    <button onclick="logout()">Logout</button>
+  </div>
+
+  <h2>Arsip Surat Terkunci</h2>
+  <table id="arsipTable">
+    <thead>
+      <tr>
+        <th>No Agenda</th>
+        <th>Alamat Tujuan</th>
+        <th>Perihal</th>
+        <th>Tanggal</th>
+        <th>Bidang</th>
+        <th>Aksi</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <!-- Elemen untuk Cetak -->
+  <div id="printArea">
+    <h3>Data Surat Keluar</h3>
+    <p><strong>No Agenda:</strong> <span id="pNoAgenda"></span></p>
+    <p><strong>Alamat Tujuan:</strong> <span id="pAlamat"></span></p>
+    <p><strong>Perihal:</strong> <span id="pPerihal"></span></p>
+    <p><strong>Tanggal:</strong> <span id="pTanggal"></span></p>
+    <p><strong>Bidang:</strong> <span id="pBidang"></span></p>
+  </div>
+
+  <!-- Library html2pdf -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <script>
+    const dataSurat = JSON.parse(localStorage.getItem("suratData")) || [];
+    const tbody = document.querySelector("#arsipTable tbody");
+
+    dataSurat
+      .filter(data => data.locked)
+      .forEach(data => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${data.noAgenda}</td>
+          <td>${data.alamatTujuan}</td>
+          <td>${data.perihal}</td>
+          <td>${data.tanggal}</td>
+          <td>${data.bidang}</td>
+          <td>
+            <div style="display: flex; flex-direction: column; gap: 6px; width: 100%;">
+              <a href="detail-surat.html?agenda=${data.noAgenda}" 
+                style="display: block; width: 100%; text-align: center; background: #3498db; color: white; padding: 8px 0; border-radius: 4px; text-decoration: none; font-size: 14px;">
+                Lihat
+              </a>
+              <button onclick="cetakSurat('${data.noAgenda}')" 
+                style="width: 100%; background: #2ecc71; color: white; padding: 8px 0; border: none; border-radius: 4px; font-size: 14px; cursor: pointer;">
+                Cetak
+              </button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+
+    function cetakSurat(noAgenda) {
+      const surat = dataSurat.find(s => s.noAgenda === noAgenda);
+      if (!surat) return;
+
+      document.getElementById("pNoAgenda").innerText = surat.noAgenda;
+      document.getElementById("pAlamat").innerText = surat.alamatTujuan;
+      document.getElementById("pPerihal").innerText = surat.perihal;
+      document.getElementById("pTanggal").innerText = surat.tanggal;
+      document.getElementById("pBidang").innerText = surat.bidang;
+
+      const element = document.getElementById("printArea");
+
+      html2pdf()
+        .from(element)
+        .set({
+          margin: 10,
+          filename: `Surat-${surat.noAgenda}.pdf`,
+          html2canvas: { scale: 2 },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        })
+        .save();
+    }
+
+    function logout() {
+      localStorage.removeItem("userLogin");
+      window.location.href = "index.html";
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Surat Keluar</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: linear-gradient(to bottom right, #e0f7ff, #a3d8f4);
+      position: relative;
+      z-index: 0;
+    }
+
+    /* Background transparan dengan gambar */
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: url('images/begron.png') no-repeat center center;
+      background-size: cover;
+      opacity: 0.15;
+      z-index: -1;
+    }
+
+    h2 {
+      color: #0057a8;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: rgba(255, 255, 255, 0.95);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid #eee;
+    }
+
+    th {
+      background-color: #0057a8;
+      color: white;
+      text-align: left;
+    }
+
+    tr.locked {
+      background-color: #f1f1f1;
+      color: #888;
+    }
+
+    button {
+      padding: 6px 10px;
+      border: none;
+      background: #3498db;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 5px;
+    }
+
+    .status {
+      font-weight: bold;
+    }
+
+    a {
+      color: #0057a8;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    /* Modal styling */
+    #editModal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      align-items: center;
+      justify-content: center;
+      z-index: 99;
+    }
+
+    #editModal .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      width: 400px;
+    }
+
+  </style>
+</head>
+<body>
+
+  <h2>Daftar Surat Keluar</h2>
+  <a href="dashboard.html">← Kembali ke Dashboard</a>
+  <br /><br />
+
+  <table>
+    <thead>
+      <tr>
+        <th>No Agenda</th>
+        <th>Alamat Tujuan</th>
+        <th>Perihal</th>
+        <th>Tanggal</th>
+        <th>Bidang</th>
+        <th>Status</th>
+        <th>Aksi</th>
+      </tr>
+    </thead>
+    <tbody id="dataSurat"></tbody>
+  </table>
+
+  <!-- Modal Edit -->
+  <div id="editModal">
+    <div class="modal-content">
+      <h3>Edit Surat</h3>
+      <form id="editForm">
+        <input type="hidden" id="editNoAgenda" />
+        <label>Alamat Tujuan:</label><br>
+        <input type="text" id="editAlamat" required><br><br>
+        <label>Perihal:</label><br>
+        <input type="text" id="editPerihal" required><br><br>
+        <label>Tanggal:</label><br>
+        <input type="date" id="editTanggal" required><br><br>
+        <label>Bidang:</label><br>
+        <input type="text" id="editBidang" required><br><br>
+        <button type="submit">Simpan Perubahan</button>
+        <button type="button" onclick="tutupModal()">Batal</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Script -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    const user = sessionStorage.getItem("loggedInUser");
+    const role = sessionStorage.getItem("loggedInRole");
+
+    if (!user || !role) {
+      alert("Silakan login terlebih dahulu.");
+      window.location.href = "login.html";
+    }
+
+    const tbody = document.getElementById("dataSurat");
+
+    window.onload = function () {
+      const saved = localStorage.getItem("suratData");
+      if (saved) {
+        JSON.parse(saved).forEach(data => renderRow(data));
+      }
+    };
+
+    function renderRow(data) {
+      const row = document.createElement("tr");
+      if (data.locked === true) row.classList.add("locked");
+
+      const isAdmin = role === "admin";
+
+      row.innerHTML = `
+        <td>${data.noAgenda}</td>
+        <td>${data.alamatTujuan}</td>
+        <td>${data.perihal}</td>
+        <td>${data.tanggal}</td>
+        <td>${data.bidang}</td>
+        <td class="status">${data.locked ? "Terkunci" : "Terbuka"}</td>
+        <td>
+          <button onclick="printPDF(this)">Cetak</button>
+          ${isAdmin && !data.locked ? `
+            <button onclick="editRow(this)">Edit</button>
+            <button onclick="deleteRow(this)">Hapus</button>
+            <button onclick="lockRow(this)">Kunci</button>
+          ` : ""}
+        </td>
+      `;
+      tbody.appendChild(row);
+    }
+
+    function editRow(button) {
+      const row = button.closest("tr");
+      const noAgenda = row.querySelector("td").innerText;
+      sessionStorage.setItem("editNoAgenda", noAgenda);
+      window.location.href = "edit-surat.html";
+    }
+
+    function deleteRow(button) {
+      const row = button.closest("tr");
+      const noAgenda = row.querySelector("td").innerText;
+      let suratList = JSON.parse(localStorage.getItem("suratData")) || [];
+      suratList = suratList.filter(item => item.noAgenda !== noAgenda);
+      localStorage.setItem("suratData", JSON.stringify(suratList));
+      row.remove();
+    }
+
+    function lockRow(button) {
+      const row = button.closest("tr");
+      const noAgenda = row.querySelector("td").innerText;
+      let suratList = JSON.parse(localStorage.getItem("suratData")) || [];
+      suratList = suratList.map(data => {
+        if (data.noAgenda === noAgenda) data.locked = true;
+        return data;
+      });
+      localStorage.setItem("suratData", JSON.stringify(suratList));
+      row.querySelector(".status").innerText = "Terkunci";
+      row.classList.add("locked");
+      renderUlangTabel();
+    }
+
+    function renderUlangTabel() {
+      tbody.innerHTML = "";
+      let suratList = JSON.parse(localStorage.getItem("suratData")) || [];
+      suratList.forEach(data => renderRow(data));
+    }
+
+    function tutupModal() {
+      document.getElementById("editModal").style.display = "none";
+    }
+
+    document.getElementById("editForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const noAgenda = document.getElementById("editNoAgenda").value;
+      const alamatTujuan = document.getElementById("editAlamat").value;
+      const perihal = document.getElementById("editPerihal").value;
+      const tanggal = document.getElementById("editTanggal").value;
+      const bidang = document.getElementById("editBidang").value;
+
+      let suratList = JSON.parse(localStorage.getItem("suratData")) || [];
+      suratList = suratList.map(item => {
+        if (item.noAgenda === noAgenda && !item.locked) {
+          return { ...item, alamatTujuan, perihal, tanggal, bidang };
+        }
+        return item;
+      });
+
+      localStorage.setItem("suratData", JSON.stringify(suratList));
+      renderUlangTabel();
+      tutupModal();
+    });
+
+    async function printPDF(button) {
+      const row = button.closest("tr");
+      const cells = row.querySelectorAll("td");
+
+      const doc = new jspdf.jsPDF();
+      doc.setFontSize(14);
+      doc.text("Surat Keluar", 15, 20);
+      doc.setFontSize(12);
+
+      const labels = ["No Agenda", "Alamat Tujuan", "Perihal", "Tanggal", "Bidang", "Status"];
+      labels.forEach((label, i) => {
+        doc.text(`${label}: ${cells[i].innerText}`, 15, 30 + i * 10);
+      });
+
+      doc.save(`Surat-${cells[0].innerText}.pdf`);
+    }
+  </script>
+</body>
+</html>

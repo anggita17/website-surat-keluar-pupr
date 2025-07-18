@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Detail Surat Keluar</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to bottom right, #e0f3ff, #c0f0f8);
+      animation: fadeIn 1s ease;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: 50px auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+      padding: 30px;
+      animation: fadeInUp 0.8s ease;
+    }
+
+    h2 {
+      color: #0057a8;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .field {
+      margin-bottom: 15px;
+    }
+
+    .field label {
+      font-weight: bold;
+      display: block;
+      color: #333;
+    }
+
+    .field p {
+      margin: 5px 0 0;
+      padding: 10px 14px;
+      background: #f1f9ff;
+      border-radius: 6px;
+      color: #00507a;
+    }
+
+    .btn-back {
+      display: inline-block;
+      margin-top: 25px;
+      padding: 12px 20px;
+      background: #0057a8;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: background 0.3s ease;
+    }
+
+    .btn-back:hover {
+      background: #004080;
+    }
+
+    .not-found {
+      text-align: center;
+      color: #aa0000;
+      font-weight: bold;
+    }
+
+    @keyframes fadeIn {
+      from {opacity: 0;}
+      to {opacity: 1;}
+    }
+
+    @keyframes fadeInUp {
+      from {opacity: 0; transform: translateY(20px);}
+      to {opacity: 1; transform: translateY(0);}
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>Detail Surat Keluar</h2>
+
+    <div id="detailContainer">
+      <div class="field">
+        <label>No Agenda:</label>
+        <p id="noAgenda">-</p>
+      </div>
+
+      <div class="field">
+        <label>Alamat Tujuan:</label>
+        <p id="alamatTujuan">-</p>
+      </div>
+
+      <div class="field">
+        <label>Perihal:</label>
+        <p id="perihal">-</p>
+      </div>
+
+      <div class="field">
+        <label>Tanggal:</label>
+        <p id="tanggal">-</p>
+      </div>
+
+      <div class="field">
+        <label>Bidang:</label>
+        <p id="bidang">-</p>
+      </div>
+    </div>
+
+    <div class="not-found" id="notFound" style="display: none;">
+      Data surat tidak ditemukan.
+    </div>
+
+    <a href="arsip-surat.html" class="btn-back">← Kembali ke Arsip Surat</a>
+  </div>
+
+  <script>
+    function getQueryParam(param) {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(param);
+    }
+
+    const noAgenda = getQueryParam("agenda");
+    const suratList = JSON.parse(localStorage.getItem("suratData")) || [];
+    const surat = suratList.find(item => item.noAgenda === noAgenda);
+
+    if (surat) {
+      document.getElementById("noAgenda").innerText = surat.noAgenda;
+      document.getElementById("alamatTujuan").innerText = surat.alamatTujuan;
+      document.getElementById("perihal").innerText = surat.perihal;
+      document.getElementById("tanggal").innerText = surat.tanggal;
+      document.getElementById("bidang").innerText = surat.bidang;
+    } else {
+      document.getElementById("detailContainer").style.display = "none";
+      document.getElementById("notFound").style.display = "block";
+    }
+  </script>
+
+</body>
+</html>
